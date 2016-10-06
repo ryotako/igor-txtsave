@@ -1,4 +1,10 @@
 
+Function TxtSave_ShowSavedFiles()
+	PathInfo home
+	NewPath/C/O/Q Txtsave_RootDir,S_path+IgorInfo(1)+"_txtfiles" 
+	PathInfo/SHOW Txtsave_RootDir
+End
+
 Function TxtSave_Recursive(wRoot, wList, fName)
 	String wRoot, wList, fName
 	TxtSave(wRoot, wList, fName)
@@ -11,7 +17,6 @@ End
 
 Function TxtSave(wPath, wList, fName)
 	String wPath, wList, fName
-	//print wPath
 	if(WaveListExists(wPath,wList) && DataFolderExists(wPath))
 		String fPath = ConvertToExternalPath(wPath)
 		String pName = MakeParentDirectoriesAsNeeded(fPath)
@@ -22,7 +27,7 @@ Function TxtSave(wPath, wList, fName)
 	endif
 End
 
-Function WaveListExists(wPath,wList)
+static Function WaveListExists(wPath, wList)
 	String wPath, wList
 	Variable i,Ni=ItemsInList(wList)
 	for(i=0;i<Ni;i+=1)
@@ -33,7 +38,7 @@ Function WaveListExists(wPath,wList)
 	return 1
 End
 
-Function/S ConvertToExternalPath(wPath)
+static Function/S ConvertToExternalPath(wPath)
 	String wPath
 	String fRoot=IgorInfo(1)+"_txtfiles", fPath
 	PathInfo home
@@ -41,7 +46,7 @@ Function/S ConvertToExternalPath(wPath)
 	return fPath
 End
 
-Function/S MakeParentDirectoriesAsNeeded(fPath)
+static Function/S MakeParentDirectoriesAsNeeded(fPath)
 	String fPath
 	String parent="", pName="Txtsave_TmpDir"
 	Variable i,Ni=ItemsInList(fPath,":")
@@ -52,6 +57,6 @@ Function/S MakeParentDirectoriesAsNeeded(fPath)
 	return pName
 End
 
-Function/S LF()
+static Function/S LF()
 	return SelectString(cmpstr(IgorInfo(2),"Windows"),"\r\n","\n")
 End
