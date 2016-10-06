@@ -1,18 +1,17 @@
 
 Function TxtSave_Recursive(wRoot, wList, fName)
 	String wRoot, wList, fName
-	printf "%s,%s,%s", wRoot,wList,fName
 	TxtSave(wRoot, wList, fName)
-
 	Variable i,Ni=CountObjects(wRoot,4)
-	print Ni
 	for(i=0;i<Ni;i+=1)
-		TxtSave_Recursive(wRoot+GetIndexedObjName(wRoot,4,i)+":", wList, fName)
+		String folder=PossiblyQuoteName(GetIndexedObjName(wRoot,4,i))
+		TxtSave_Recursive(wRoot+folder+":", wList, fName)
 	endfor
 End
 
 Function TxtSave(wPath, wList, fName)
 	String wPath, wList, fName
+	//print wPath
 	if(WaveListExists(wPath,wList) && DataFolderExists(wPath))
 		String fPath = ConvertToExternalPath(wPath)
 		String pName = MakeParentDirectoriesAsNeeded(fPath)
