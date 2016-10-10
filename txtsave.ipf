@@ -37,18 +37,20 @@ static Function Dialog()
 	String wList=WaveList("*",";","")
 	String fName=SelectString(ItemsInList(wList),"txtsave.txt",StringFromList(0,wList)+"++.txt")
 	String ignore="root:Packages:;"
+	String option=DefaultOption()
 	
 	Prompt root,"Root:"
 	Prompt fName,"File name:"
 	Prompt wList,"Saved waves:"
 	Prompt ignore,"Unsaved data folders:"
+	Prompt option,"Options of Save operation except for /B and /P"
 
 	String help=""
-	DoPrompt/HELP=help "TxtSave",root,fName,wList,ignore
+	DoPrompt/HELP=help "TxtSave",root,fName,wList,ignore,option
 	if(V_Flag)
 		return NaN
 	endif
-	TxtSave_Recursive(root,wList,fName,ignore=ignore)
+	TxtSave_Recursive(root,wList,fName,ignore=ignore,option=option)
 End
 
 static Function/S MenuItem(i)
@@ -75,40 +77,47 @@ End
 // Public Functions /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
 
-Function TxtSave_Recursive(wFolder,wList,fName [ignore])
-	String wFolder, wList, fName, ignore
+Function TxtSave_Recursive(wFolder,wList,fName [ignore,option])
+	String wFolder,wList,fName,ignore,option
 	if(ParamIsDefault(ignore))
 		ignore=""
 	endif
+	if(ParamIsDefault(option))
+		option=DefaultOption()
+	endif
 	wFolder=AbsFolder(GetDataFolder(1),wFolder)	
-	TxtSave_Recursive_(wFolder,wList,fName,ignore=ignore,root=GetDataFolder(1))
+	TxtSave_Recursive_(wFolder,wList,fName,ignore=ignore,root=GetDataFolder(1),option=option)
 End
-static Function TxtSave_Recursive_(wFolder, wList, fName [ignore,root])
-	String wFolder, wList, fName, ignore, root
+static Function TxtSave_Recursive_(wFolder,wList,fName [ignore,root,option])
+	String wFolder,wList,fName,ignore,root,option
 	if(!FolderMatch(wFolder,root,ignore))
-		print wFolder,root,FolderMatch(wFolder,root,ignore)
-		TxtSave_(wFolder, wList, fName)
+		TxtSave_(wFolder,wList,fName,option=option)
 	endif
 	Variable i,Ni=CountObjects(wFolder,4)
 	for(i=0;i<Ni;i+=1)
 		String wSub=PossiblyQuoteName(GetIndexedObjName(wFolder,4,i))
-		TxtSave_Recursive_(wFolder+wSub+":", wList, fName,ignore=ignore,root=root)
+		TxtSave_Recursive_(wFolder+wSub+":",wList,fName,ignore=ignore,root=root,option=option)
 	endfor
 End
 
-Function TxtSave(wFolder,wList,fName)
-	String wFolder,wList,fName
+Function TxtSave(wFolder,wList,fName [option])
+	String wFolder,wList,fName,option
+	if(ParamIsDefault(option))
+		option=DefaultOption()
+	endif
 	wFolder=AbsFolder(GetDataFolder(1),wFolder)	
-	TxtSave_(wFolder,wList,fName)
+	TxtSave_(wFolder,wList,fName,option=option)
 End
-static Function TxtSave_(wFolder,wList,fName)
-	String wFolder,wList,fName
+static Function TxtSave_(wFolder,wList,fName [option])
+	String wFolder,wList,fName,option
 	if(WaveListExists(wFolder,wList) && DataFolderExists(wFolder))
 		String fPath = ConvertToExternalPath(wFolder)
 		String pName = MakeParentDirectoriesAsNeeded(fPath)
 		DFREF here=GetDataFolderDFR()
 		SetDataFolder $wFolder
-		Save/B/G/M=LF()/O/P=$pName/W wList as fName
+		String cmd
+		sprintf cmd,"Save%s/B/P=%s \"%s\" as \"%s\"",option,pName,wList,fName 
+		Execute cmd
 		SetDataFolder here
 	endif
 End
@@ -166,8 +175,10 @@ static Function/S MakeParentDirectoriesAsNeeded(fPath)
 End
 
 // Line feed according to the OS
-static Function/S LF()
-	return SelectString(cmpstr(IgorInfo(2),"Windows"),"\r\n","\n")
+static Function/S DefaultOption()
+	String opt,LF=SelectString(cmpstr(IgorInfo(2),"Windows"),"\\r\\n","\\n")
+	sprintf opt,"/G/O/W/M=\"%s\"",LF
+	return opt
 End
 
 
@@ -190,7 +201,7 @@ End
 // 1: Match (positive pattern)
 // 0: No Match
 //-1: Match (negative pattern)
-Function FolderMatch_(folder,root,expr)
+static Function FolderMatch_(folder,root,expr)
 	String folder,root,expr
 	Variable neg=1
 	if(GrepString(expr,"^!"))
@@ -217,7 +228,7 @@ Function FolderMatch_(folder,root,expr)
 End
 
 // Slice list as wave slice: w[1,3]
-Function/S Slice(list,n,m,del)
+static Function/S Slice(list,n,m,del)
 	String list,del; Variable n,m
 	String buf=""
 	Variable i
