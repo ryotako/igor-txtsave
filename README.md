@@ -29,3 +29,5 @@ You can set options of `Save` operation explicitly with this `option` option.
 When you do not set this option, options `/G/O/W/M="\n"` are used for `Save` operation.
 (When you use Windows, deafult option is `/G/O/W/M="\r\n"`)
 You cannot use options `/B` and `/P` because these options are automatically chosen by this procedure.
+
+![demo](http://img.f.hatena.ne.jp/images/fotolife/r/ryotako/20161010/20161010145410.png)
